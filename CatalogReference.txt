@@ -1,0 +1,8 @@
+feature/Catalog-Service-NET-Core-10
+- Catalog Service (.NET Core 10) → Artist, Album, Track, Genre, MediaType. - CatalogService
+
+- Commerce Service (Java latest) → Customer, Invoice, InvoiceLine.         - CommerceService
+
+- Playlist Service (Python latest) → Playlist, PlaylistTrack.               - PlaylistService
+
+- Customer/Employee Service (Node latest) → Customer, Employee.             - EmployeeService
