@@ -8,6 +8,9 @@ using Catalog.API.Features.MediaTypes.Endpoints;
 using Catalog.API.Features.MediaTypes.Services;
 using Catalog.API.Features.Tracks.Endpoints;
 using Catalog.API.Features.Tracks.Services;
+using Catalog.API.Infrastructure;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,12 +43,31 @@ builder.Services.AddSwaggerGen(options =>
     }
 });
 
+// Register MediatR to discover query/command handlers
+builder.Services.AddMediatR(typeof(Program).Assembly);
+
 // Register feature services
 builder.Services.AddScoped<IArtistService, ArtistService>();
 builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddScoped<ITrackService, TrackService>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<IMediaTypeService, MediaTypeService>();
+
+// Configure EF Core DbContext for Chinook using the configured path
+builder.Services.AddDbContext<ChinookDbContext>((sp, options) =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var path = cfg.GetValue<string>("ChinookDb:Path");
+    if (string.IsNullOrWhiteSpace(path))
+    {
+        path = Path.Combine(AppContext.BaseDirectory, "data", "chinook.db");
+    }
+    var cs = $"Data Source={path}";
+    options.UseSqlite(cs);
+});
+
+// Chinook DB repository (EF Core-backed)
+builder.Services.AddScoped<IChinookRepository, ChinookRepository>();
 
 var app = builder.Build();
 

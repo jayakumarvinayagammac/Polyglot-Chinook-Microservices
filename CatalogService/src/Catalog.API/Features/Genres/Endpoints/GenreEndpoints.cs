@@ -1,5 +1,6 @@
 using Catalog.API.Features.Genres.DTOs;
 using Catalog.API.Features.Genres.Services;
+using MediatR;
 
 namespace Catalog.API.Features.Genres.Endpoints;
 
@@ -27,9 +28,9 @@ public static class GenreEndpoints
             .WithDescription("Delete a genre by ID");
     }
 
-    private static async Task<IResult> GetAllGenres(IGenreService service)
+    private static async Task<IResult> GetAllGenres(IMediator mediator)
     {
-        var genres = await service.GetAllAsync();
+        var genres = await mediator.Send(new Queries.GetAllGenresQuery());
         return Results.Ok(genres);
     }
 

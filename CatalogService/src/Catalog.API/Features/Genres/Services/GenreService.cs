@@ -1,46 +1,43 @@
 using Catalog.API.Features.Genres.DTOs;
-using Catalog.API.Models;
+using Catalog.API.Infrastructure;
 
 namespace Catalog.API.Features.Genres.Services;
 
 public class GenreService : IGenreService
 {
-    private static readonly List<Genre> Genres = new();
-    private static int _idCounter = 1;
+    private readonly IChinookRepository _repository;
 
-    public Task<IEnumerable<GetGenreDto>> GetAllAsync()
+    public GenreService(IChinookRepository repository)
     {
-        var result = Genres.Select(g => new GetGenreDto { GenreId = g.GenreId, Name = g.Name });
-        return Task.FromResult(result.AsEnumerable());
+        _repository = repository;
     }
 
-    public Task<GetGenreDto?> GetByIdAsync(int id)
+    public async Task<IEnumerable<GetGenreDto>> GetAllAsync()
     {
-        var genre = Genres.FirstOrDefault(g => g.GenreId == id);
-        var result = genre == null ? null : new GetGenreDto { GenreId = genre.GenreId, Name = genre.Name };
-        return Task.FromResult(result);
+        var genres = await _repository.GetAllGenresAsync();
+        return genres;
     }
 
-    public Task<GetGenreDto> CreateAsync(CreateGenreDto dto)
+    public async Task<GetGenreDto?> GetByIdAsync(int id)
     {
-        var genre = new Genre { GenreId = _idCounter++, Name = dto.Name };
-        Genres.Add(genre);
-        return Task.FromResult(new GetGenreDto { GenreId = genre.GenreId, Name = genre.Name });
+        var genre = await _repository.GetGenreByIdAsync(id);
+        return genre;
     }
 
-    public Task<bool> UpdateAsync(int id, CreateGenreDto dto)
+    public async Task<GetGenreDto> CreateAsync(CreateGenreDto dto)
     {
-        var genre = Genres.FirstOrDefault(g => g.GenreId == id);
-        if (genre == null) return Task.FromResult(false);
-        genre.Name = dto.Name;
-        return Task.FromResult(true);
+        var genreId = await _repository.InsertGenreAsync(dto.Name);
+        var createdGenre = await _repository.GetGenreByIdAsync((int)genreId);
+        return createdGenre ?? new GetGenreDto { GenreId = (int)genreId, Name = dto.Name };
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<bool> UpdateAsync(int id, CreateGenreDto dto)
     {
-        var genre = Genres.FirstOrDefault(g => g.GenreId == id);
-        if (genre == null) return Task.FromResult(false);
-        Genres.Remove(genre);
-        return Task.FromResult(true);
+        return await _repository.UpdateGenreAsync(id, dto.Name);
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        return await _repository.DeleteGenreAsync(id);
     }
 }
