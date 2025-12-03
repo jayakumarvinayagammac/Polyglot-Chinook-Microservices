@@ -1,5 +1,5 @@
 using Catalog.API.Features.Tracks.DTOs;
-using Catalog.API.Features.Tracks.Services;
+using MediatR;
 
 namespace Catalog.API.Features.Tracks.Endpoints;
 
@@ -27,35 +27,41 @@ public static class TrackEndpoints
             .WithDescription("Delete a track by ID");
     }
 
-    private static async Task<IResult> GetAllTracks(ITrackService service)
+    private static async Task<IResult> GetAllTracks(IMediator mediator)
     {
-        var tracks = await service.GetAllAsync();
+        var tracks = await mediator.Send(new Queries.GetAllTracksQuery());
         return Results.Ok(tracks);
     }
 
-    private static async Task<IResult> GetTrackById(int id, ITrackService service)
+    private static async Task<IResult> GetTrackById(int id, IMediator mediator)
     {
-        var track = await service.GetByIdAsync(id);
-        if (track == null) return Results.NotFound();
-        return Results.Ok(track);
+        try
+        {
+            var track = await mediator.Send(new Queries.GetTrackByIdQuery(id));
+            return Results.Ok(track);
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound();
+        }
     }
 
-    private static async Task<IResult> CreateTrack(CreateTrackDto dto, ITrackService service)
+    private static async Task<IResult> CreateTrack(CreateTrackDto dto, IMediator mediator)
     {
-        var track = await service.CreateAsync(dto);
-        return Results.Created($"/api/tracks/{track.TrackId}", track);
+        var createdTrack = await mediator.Send(new Commands.CreateTrackCommand(dto));
+        return Results.Created($"/api/tracks/{createdTrack.TrackId}", createdTrack);
     }
 
-    private static async Task<IResult> UpdateTrack(int id, CreateTrackDto dto, ITrackService service)
+    private static async Task<IResult> UpdateTrack(int id, CreateTrackDto dto, IMediator mediator)
     {
-        var success = await service.UpdateAsync(id, dto);
+        var success = await mediator.Send(new Commands.UpdateTrackCommand(id, dto));
         if (!success) return Results.NotFound();
         return Results.NoContent();
     }
 
-    private static async Task<IResult> DeleteTrack(int id, ITrackService service)
+    private static async Task<IResult> DeleteTrack(int id, IMediator mediator)
     {
-        var success = await service.DeleteAsync(id);
+        var success = await mediator.Send(new Commands.DeleteTrackCommand(id));
         if (!success) return Results.NotFound();
         return Results.NoContent();
     }

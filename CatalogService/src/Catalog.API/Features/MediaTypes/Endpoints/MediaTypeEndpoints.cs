@@ -1,6 +1,5 @@
 using Catalog.API.Features.MediaTypes.DTOs;
-using Catalog.API.Features.MediaTypes.Services;
-
+using MediatR;
 namespace Catalog.API.Features.MediaTypes.Endpoints;
 
 public static class MediaTypeEndpoints
@@ -27,35 +26,41 @@ public static class MediaTypeEndpoints
             .WithDescription("Delete a media type by ID");
     }
 
-    private static async Task<IResult> GetAllMediaTypes(IMediaTypeService service)
+    private static async Task<IResult> GetAllMediaTypes(IMediator mediator)
     {
-        var mediaTypes = await service.GetAllAsync();
+        var mediaTypes = await mediator.Send(new Queries.GetAllMediaTypesQuery());
         return Results.Ok(mediaTypes);
     }
 
-    private static async Task<IResult> GetMediaTypeById(int id, IMediaTypeService service)
+    private static async Task<IResult> GetMediaTypeById(int id, IMediator mediator)
     {
-        var mediaType = await service.GetByIdAsync(id);
-        if (mediaType == null) return Results.NotFound();
-        return Results.Ok(mediaType);
+        try
+        {
+            var mediaType = await mediator.Send(new Queries.GetMediaTypeByIdQuery(id));
+            return Results.Ok(mediaType);
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound();
+        }
     }
 
-    private static async Task<IResult> CreateMediaType(CreateMediaTypeDto dto, IMediaTypeService service)
+    private static async Task<IResult> CreateMediaType(CreateMediaTypeDto dto, IMediator mediator)
     {
-        var mediaType = await service.CreateAsync(dto);
-        return Results.Created($"/api/mediatypes/{mediaType.MediaTypeId}", mediaType);
+        var createdMediaType = await mediator.Send(new Commands.CreateMediaTypeCommand(dto));
+        return Results.Created($"/api/mediatypes/{createdMediaType.MediaTypeId}", createdMediaType);
     }
 
-    private static async Task<IResult> UpdateMediaType(int id, CreateMediaTypeDto dto, IMediaTypeService service)
+    private static async Task<IResult> UpdateMediaType(int id, CreateMediaTypeDto dto, IMediator mediator)
     {
-        var success = await service.UpdateAsync(id, dto);
+        var success = await mediator.Send(new Commands.UpdateMediaTypeCommand(id, dto.Name));
         if (!success) return Results.NotFound();
         return Results.NoContent();
     }
 
-    private static async Task<IResult> DeleteMediaType(int id, IMediaTypeService service)
+    private static async Task<IResult> DeleteMediaType(int id, IMediator mediator)
     {
-        var success = await service.DeleteAsync(id);
+        var success = await mediator.Send(new Commands.DeleteMediaTypeCommand(id));
         if (!success) return Results.NotFound();
         return Results.NoContent();
     }

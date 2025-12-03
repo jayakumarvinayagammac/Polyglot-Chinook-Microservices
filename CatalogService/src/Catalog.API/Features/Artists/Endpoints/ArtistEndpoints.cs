@@ -1,6 +1,5 @@
 using Catalog.API.Features.Artists.DTOs;
-using Catalog.API.Features.Artists.Services;
-
+using MediatR;
 namespace Catalog.API.Features.Artists.Endpoints;
 
 public static class ArtistEndpoints
@@ -27,35 +26,41 @@ public static class ArtistEndpoints
             .WithDescription("Delete an artist by ID");
     }
 
-    private static async Task<IResult> GetAllArtists(IArtistService service)
+    private static async Task<IResult> GetAllArtists(IMediator mediator)
     {
-        var artists = await service.GetAllAsync();
+        var artists = await mediator.Send(new Queries.GetAllArtistQuery());
         return Results.Ok(artists);
     }
 
-    private static async Task<IResult> GetArtistById(int id, IArtistService service)
+    private static async Task<IResult> GetArtistById(int id, IMediator mediator)
     {
-        var artist = await service.GetByIdAsync(id);
-        if (artist == null) return Results.NotFound();
-        return Results.Ok(artist);
+        try
+        {
+            var artist = await mediator.Send(new Queries.GetArtistByIdQuery(id));
+            return Results.Ok(artist);
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound();
+        }
     }
 
-    private static async Task<IResult> CreateArtist(CreateArtistDto dto, IArtistService service)
+    private static async Task<IResult> CreateArtist(CreateArtistDto dto, IMediator mediator)
     {
-        var artist = await service.CreateAsync(dto);
-        return Results.Created($"/api/artists/{artist.ArtistId}", artist);
+        var createdArtist = await mediator.Send(new Commands.CreateArtistCommand(dto));
+        return Results.Created($"/api/artists/{createdArtist.ArtistId}", createdArtist);
     }
 
-    private static async Task<IResult> UpdateArtist(int id, CreateArtistDto dto, IArtistService service)
+    private static async Task<IResult> UpdateArtist(int id, CreateArtistDto dto, IMediator mediator)
     {
-        var success = await service.UpdateAsync(id, dto);
+        var success = await mediator.Send(new Commands.UpdateArtistCommand(id, dto.Name));
         if (!success) return Results.NotFound();
         return Results.NoContent();
     }
 
-    private static async Task<IResult> DeleteArtist(int id, IArtistService service)
+    private static async Task<IResult> DeleteArtist(int id, IMediator mediator)
     {
-        var success = await service.DeleteAsync(id);
+        var success = await mediator.Send(new Commands.DeleteArtistCommand(id));
         if (!success) return Results.NotFound();
         return Results.NoContent();
     }

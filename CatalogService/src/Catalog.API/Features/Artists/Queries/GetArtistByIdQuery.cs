@@ -3,5 +3,7 @@ using Catalog.API.Features.Artists.DTOs;
 
 namespace Catalog.API.Features.Artists.Queries
 {
-    public sealed record GetAllArtistQuery : IQuery<IEnumerable<GetArtistDto>>;
+    public sealed record GetArtistByIdQuery(int Id) : IQuery<GetArtistDto>;
+
+    
 }
