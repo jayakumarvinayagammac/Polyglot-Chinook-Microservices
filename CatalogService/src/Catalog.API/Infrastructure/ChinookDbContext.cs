@@ -59,7 +59,7 @@ public class ChinookDbContext : DbContext
 
         modelBuilder.Entity<MediaType>(b =>
         {
-            b.ToTable("MediaTypes");
+            b.ToTable("Media_Types");
             b.HasKey(e => e.MediaTypeId);
             b.Property(e => e.MediaTypeId).HasColumnName("MediaTypeId");
             b.Property(e => e.Name).HasColumnName("Name").IsRequired();

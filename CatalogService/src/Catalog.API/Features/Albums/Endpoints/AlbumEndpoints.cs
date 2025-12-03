@@ -1,6 +1,6 @@
+using Catalog.API.Features.Albums.Commands;
 using Catalog.API.Features.Albums.DTOs;
-using Catalog.API.Features.Albums.Services;
-
+using MediatR;
 namespace Catalog.API.Features.Albums.Endpoints;
 
 public static class AlbumEndpoints
@@ -27,35 +27,42 @@ public static class AlbumEndpoints
             .WithDescription("Delete an album by ID");
     }
 
-    private static async Task<IResult> GetAllAlbums(IAlbumService service)
+    private static async Task<IResult> GetAllAlbums(IMediator mediator)
     {
-        var albums = await service.GetAllAsync();
+        var albums = await mediator.Send(new Queries.GetAllAlbumsQuery());
         return Results.Ok(albums);
     }
 
-    private static async Task<IResult> GetAlbumById(int id, IAlbumService service)
+    private static async Task<IResult> GetAlbumById(int id, IMediator mediator)
     {
-        var album = await service.GetByIdAsync(id);
-        if (album == null) return Results.NotFound();
-        return Results.Ok(album);
+        try
+        {
+            var album = await mediator.Send(new Queries.GetAlbumByIdQuery(id));
+            return Results.Ok(album);
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound();
+        }
     }
 
-    private static async Task<IResult> CreateAlbum(CreateAlbumDto dto, IAlbumService service)
+    private static async Task<IResult> CreateAlbum(CreateAlbumDto dto, IMediator mediator)
     {
-        var album = await service.CreateAsync(dto);
-        return Results.Created($"/api/albums/{album.AlbumId}", album);
+        var createdAlbum = await mediator.Send(new CreateAlbumCommand(dto));
+        return Results.Created($"/api/albums/{createdAlbum.AlbumId}", createdAlbum);
     }
 
-    private static async Task<IResult> UpdateAlbum(int id, CreateAlbumDto dto, IAlbumService service)
+    private static async Task<IResult> UpdateAlbum(int id, CreateAlbumDto dto, IMediator mediator)
     {
-        var success = await service.UpdateAsync(id, dto);
+        var success = await mediator.Send(new Commands.UpdateAlbumCommand(id, dto.Title, dto.ArtistId));
         if (!success) return Results.NotFound();
         return Results.NoContent();
+        
     }
 
-    private static async Task<IResult> DeleteAlbum(int id, IAlbumService service)
+    private static async Task<IResult> DeleteAlbum(int id, IMediator mediator)
     {
-        var success = await service.DeleteAsync(id);
+        var success = await mediator.Send(new Commands.DeleteAlbumCommand(id));
         if (!success) return Results.NotFound();
         return Results.NoContent();
     }

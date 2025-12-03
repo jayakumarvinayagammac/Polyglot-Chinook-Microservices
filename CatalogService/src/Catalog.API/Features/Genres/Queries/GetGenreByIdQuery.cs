@@ -3,4 +3,4 @@ using Catalog.API.Features.Genres.DTOs;
 
 namespace Catalog.API.Features.Genres.Queries;
 
-public sealed record GetAllGenresQuery : IQuery<IEnumerable<GetGenreDto>>;
+public sealed record GetGenreByIdQuery(int Id) : IQuery<GetGenreDto>;

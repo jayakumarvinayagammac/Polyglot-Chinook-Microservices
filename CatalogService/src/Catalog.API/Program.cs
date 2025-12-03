@@ -1,13 +1,8 @@
 using Catalog.API.Features.Albums.Endpoints;
-using Catalog.API.Features.Albums.Services;
 using Catalog.API.Features.Artists.Endpoints;
-using Catalog.API.Features.Artists.Services;
 using Catalog.API.Features.Genres.Endpoints;
-using Catalog.API.Features.Genres.Services;
 using Catalog.API.Features.MediaTypes.Endpoints;
-using Catalog.API.Features.MediaTypes.Services;
 using Catalog.API.Features.Tracks.Endpoints;
-using Catalog.API.Features.Tracks.Services;
 using Catalog.API.Infrastructure;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -47,11 +42,6 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddMediatR(typeof(Program).Assembly);
 
 // Register feature services
-builder.Services.AddScoped<IArtistService, ArtistService>();
-builder.Services.AddScoped<IAlbumService, AlbumService>();
-builder.Services.AddScoped<ITrackService, TrackService>();
-builder.Services.AddScoped<IGenreService, GenreService>();
-builder.Services.AddScoped<IMediaTypeService, MediaTypeService>();
 
 // Configure EF Core DbContext for Chinook using the configured path
 builder.Services.AddDbContext<ChinookDbContext>((sp, options) =>

@@ -1,21 +1,22 @@
 using Catalog.API.Common;
 using Catalog.API.Features.Artists.DTOs;
-using Catalog.API.Features.Artists.Services;
+using Catalog.API.Infrastructure;
 
 namespace Catalog.API.Features.Artists.Queries
 {
-    public sealed class GetAllArtistQueryHandler : IQueryHandler<IGetAllArtistQuery, IEnumerable<GetArtistDto>>
+    public sealed class GetAllArtistQueryHandler : IQueryHandler<GetAllArtistQuery, IEnumerable<GetArtistDto>>
     {
-        private readonly IArtistService _service;
+        private readonly IChinookRepository _repository;
 
-        public GetAllArtistQueryHandler(IArtistService service)
+        public GetAllArtistQueryHandler(IChinookRepository repository)
         {
-            _service = service;
+            _repository = repository;
         }
+        
 
-        public async Task<IEnumerable<GetArtistDto>> Handle(IGetAllArtistQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<GetArtistDto>> Handle(GetAllArtistQuery request, CancellationToken cancellationToken)
         {
-            return await _service.GetAllAsync();
+            return await _repository.GetAllArtistsAsync();
         }
     }
 }
